@@ -1,0 +1,141 @@
+@page
+@model CRUDApp.Pages.Products.IndexModel
+@{
+    ViewData["Title"] = "Products";
+}
+@using System.Text.Json
+
+<div class="row">
+    <div class="col-md-12">
+        <h2>Product Management</h2>
+        
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+        }
+        
+        <!-- Product Input Form -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="post" asp-page-handler="Create">
+                    <div class="mb-3">
+                        <label asp-for="Product.ProductName" class="form-label">Product Name</label>
+                        <input asp-for="Product.ProductName" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Product.Price" class="form-label">Price</label>
+                        <input asp-for="Product.Price" type="number" step="0.01" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Product.Quantity" class="form-label">Quantity</label>
+                        <input asp-for="Product.Quantity" type="number" class="form-control" required />
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Product</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Products Table -->
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Product Name</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Products)
+                {
+                    <tr>
+                        <td>@item.ProductID</td>
+                        <td>@item.ProductName</td>
+                        <td>@item.Price.ToString("C2")</td>
+                        <td>@item.Quantity</td>
+<td>
+    <button type="button" 
+            class="btn btn-primary btn-sm" 
+            onclick="editProduct(@JsonSerializer.Serialize(item))">
+        Edit
+    </button>
+    <form method="post" asp-page-handler="Delete" style="display: inline;">
+        <input type="hidden" name="id" value="@item.ProductID" />
+        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">Delete</button>
+    </form>
+</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" asp-page-handler="Edit" id="editForm">
+                <div class="modal-body">
+                    <input type="hidden" id="editProductId" name="Product.ProductID" />
+                    <div class="mb-3">
+                        <label class="form-label">Product Name</label>
+                        <input type="text" id="editProductName" name="Product.ProductName" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Price</label>
+                        <input type="number" id="editPrice" name="Product.Price" step="0.01" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" id="editQuantity" name="Product.Quantity" class="form-control" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM Loaded');
+            console.log('Bootstrap available:', typeof bootstrap !== 'undefined');
+            
+            window.editProduct = function(product) {
+                console.log('Product data received:', product);
+                
+                try {
+                    const modalElement = document.getElementById('editModal');
+                    
+
+                    document.getElementById('editProductId').value = product.ProductID;
+                    document.getElementById('editProductName').value = product.ProductName;
+                    document.getElementById('editPrice').value = product.Price;
+                    document.getElementById('editQuantity').value = product.Quantity;
+                    
+                    const modal = new bootstrap.Modal(modalElement);
+                    modal.show();
+                    
+                } catch (error) {
+                    console.error('Error in editProduct function:', error);
+                    console.error('Received product:', product);
+                }
+            };
+        });
+    </script>
+}
